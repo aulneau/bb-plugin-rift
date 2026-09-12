@@ -2,11 +2,19 @@
 
 Give each BB thread its own copy of your project.
 
-[Rift](https://github.com/anomalyco/rift) is a tool from Anomaly for creating independent project copies with their own files and Git history. On macOS, it uses APFS copy-on-write: copies initially share file storage, so installed dependencies and caches can come along without duplicating their storage up front.
+[Rift](https://github.com/anomalyco/rift) is a tool from [Anomaly](https://anoma.ly) (OpenCode creators) for making fast, space-efficient copies of a project.
 
 This plugin brings Rift to [BB](https://getbb.app)'s environment picker and handles installing and updating it for you.
 
 ![BB's new-thread composer with Rift selected and the starting branch set to origin/main.](assets/rift-hero.png)
+
+## Why use Rift over worktrees?
+
+[Git worktrees](https://git-scm.com/docs/git-worktree) give each thread separate working files, but they start from what is tracked in Git. Installed dependencies, build caches, and ignored local configuration need to be prepared separately for each new worktree.
+
+This plugin uses Rift to bring those files into each new environment. On macOS, APFS copy-on-write lets the copies initially share storage, allocating separate storage as files change. Each thread can reuse the setup already on disk and change its own copy independently.
+
+Rift also copies the Git repository. Worktrees share local branches and commits; Rift environments can use the same branch name independently. New commits stay in that copy until you explicitly share them, for example by pushing and fetching.
 
 ## Install
 
@@ -26,7 +34,7 @@ By default, the plugin fetches `origin/main` and starts the new branch at that c
 
 Your original checkout keeps its branch, index, and local edits. Copied tracked edits and non-ignored untracked files are cleared from the new environment. Installed dependencies and ignored caches remain; your setup script can bring them into line with the selected branch.
 
-Each copy has its own Git storage. Work in one thread without changing another thread's files or Git history. Existing environments retain their work when main advances.
+Existing environments retain their work when main advances.
 
 ## Adjust the defaults
 

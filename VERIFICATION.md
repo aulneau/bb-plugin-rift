@@ -1,5 +1,15 @@
 # Verification
 
+## 2026-09-12 — native branch picker (0.6.0)
+
+BB 0.43.0 / SDK 0.4.84; public npm test harness upgraded to 0.4.53 to exercise environment provider inputs and the native branch picker.
+
+- Turbo typecheck and all 36 tests pass with native Rift enabled. Added tests cover branch-input validation, default and per-environment resolution, provider-to-host routing, the receipt's diff base, picker registration/machine/project binding, the configured default label, selection and clearing, local unpushed commits without network access, named remote fetching, missing branches and retry preservation after a changed selection.
+- Built and reloaded version 0.6.0 in the active BB. The live provider advertises the default/named branch input schema, accepts empty inputs, and reports available. BB reports its 10,982-byte frontend compatible with SDK 0.4.84. Live visual inspection was unavailable; picker interaction was exercised through the public UI harness.
+- The frontend uses BB's shared branch control through its environment-provider input slot. BB owns branch loading, search, refresh and the dropdown UI. Plugin inputs are validated server-side and through the host contract.
+- Existing project defaults remain origin branches; per-environment choices also accept local branches and other configured remotes. Remote-prefixed names select remote tracking refs; other names select local heads.
+- The SDK host entry imports its declaration helper from the public root export, avoiding an unrelated dynamic-require failure in the npm 0.4.53 host module during Node tests. Vendored declarations remain matched to the active BB version.
+
 ## 2026-09-12 — automatic Rift installation and updates (0.5.0)
 
 Verified with BB 0.43.0, SDK 0.4.84, macOS arm64 and the official Rift 0.0.10 npm package.

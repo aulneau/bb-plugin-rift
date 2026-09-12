@@ -3,8 +3,8 @@ import { z } from "zod";
 import { runtimeActionSchema, runtimeStateSchema } from "./runtime-contract.js";
 import {
   executableSchema,
-  projectOptionsSchema,
-  startingBranchSchema,
+  copyOptionsSchema,
+  branchNameSchema,
 } from "./options.js";
 
 export const idSchema = z.string().uuid();
@@ -23,7 +23,7 @@ export const copySchema = z
     sourcePath: pathSchema,
     path: pathSchema,
     branch: z.string(),
-    startingBranch: startingBranchSchema,
+    startingBranch: branchNameSchema,
     startingCommit: z.string().regex(/^[a-f0-9]{40,64}$/),
     createdAt: z.number(),
   })
@@ -43,7 +43,7 @@ export const hostContract = defineRpcContract({
         name: nameSchema,
         sourcePath: pathSchema,
         binaryPath: executableSchema,
-        options: projectOptionsSchema,
+        options: copyOptionsSchema,
         branchName: z
           .string()
           .min(1)

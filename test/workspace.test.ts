@@ -873,3 +873,101 @@ test(
     }
   },
 );
+
+test(
+  "a local starting branch preserves unpushed commits and needs no fetch",
+  { skip: binaryPath === "" },
+  async () => {
+    const f = await fixture();
+    try {
+      await git(f.source, ["switch", "-c", "feature/local"]);
+      await fs.writeFile(path.join(f.source, "local.txt"), "unpushed commit");
+      await git(f.source, ["add", "local.txt"]);
+      await git(f.source, ["commit", "-m", "local-only"]);
+      const commit = await git(f.source, ["rev-parse", "HEAD"]);
+      await git(f.source, ["switch", "main"]);
+      await git(f.source, [
+        "remote",
+        "set-url",
+        "origin",
+        path.join(f.root, "missing-remote"),
+      ]);
+      const created = await createCopy(
+        {
+          ...f.input,
+          options: { ...f.input.options, startingBranch: "feature/local" },
+        },
+        f.data,
+        signal,
+      );
+      assert.equal(created.status, "created", JSON.stringify(created));
+      if (created.status !== "created") return;
+      assert.equal(created.copy.startingBranch, "feature/local");
+      assert.equal(created.copy.startingCommit, commit);
+      assert.equal(
+        await fs.readFile(path.join(created.copy.path, "local.txt"), "utf8"),
+        "unpushed commit",
+      );
+      assert.equal(await git(f.source, ["branch", "--show-current"]), "main");
+      const retry = await createCopy(
+        {
+          ...f.input,
+          options: { ...f.input.options, startingBranch: "origin/main" },
+        },
+        f.data,
+        signal,
+      );
+      assert.deepEqual(retry, created);
+      assert.equal(
+        (await removeCopy({ id: f.input.id, binaryPath }, f.data, signal))
+          .status,
+        "removed",
+      );
+    } finally {
+      await fs.rm(f.root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  "a named remote branch fetches its own remote and rejects missing local branches",
+  { skip: binaryPath === "" },
+  async () => {
+    const f = await fixture();
+    try {
+      await git(f.source, ["remote", "add", "upstream", f.remote]);
+      const created = await createCopy(
+        {
+          ...f.input,
+          options: { ...f.input.options, startingBranch: "upstream/main" },
+        },
+        f.data,
+        signal,
+      );
+      assert.equal(created.status, "created", JSON.stringify(created));
+      if (created.status === "created")
+        assert.equal(
+          created.copy.startingCommit,
+          await git(f.source, ["rev-parse", "upstream/main"]),
+        );
+      const missing = await createCopy(
+        {
+          ...f.input,
+          id: randomUUID(),
+          name: "missing",
+          options: { ...f.input.options, startingBranch: "nonexistent" },
+        },
+        f.data,
+        signal,
+      );
+      assert.equal(missing.status, "failed");
+      if (missing.status === "failed")
+        assert.match(
+          missing.message,
+          /Local branch nonexistent is unavailable/,
+        );
+    } finally {
+      await fs.rm(f.root, { recursive: true, force: true });
+    }
+  },
+);

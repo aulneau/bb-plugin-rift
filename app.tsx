@@ -6,6 +6,7 @@ import type { RuntimeState, RuntimeAction } from "./runtime-contract.js";
 import { newerVersion } from "./runtime-version.js";
 import type { ProjectOptions } from "./options.js";
 import "./app.css";
+import { RiftBranchPicker } from "./branch-picker.js";
 
 type Choices = z.infer<typeof settingsContract.choices.output>;
 type ProjectState = z.infer<typeof settingsContract.projectOptions.output>;
@@ -474,6 +475,10 @@ function Overrides() {
 }
 
 export default definePluginApp((app) => {
+  app.slots.experimental_environmentProviderInputs({
+    environmentProviderId: "rift",
+    component: RiftBranchPicker,
+  });
   app.slots.settingsSection({
     id: "overrides",
     title: "Rift installation and environment overrides",

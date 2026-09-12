@@ -1,6 +1,6 @@
 import os from "node:os";
 import path from "node:path";
-import { experimental_defineHostEntry } from "@get-bb/plugin-sdk/host";
+import { experimental_defineHostEntry } from "@get-bb/plugin-sdk";
 import { hostContract } from "./contract.js";
 import { createCopy, removeCopy, type PrepareRuntime } from "./workspace.js";
 import { inspectSource } from "./checkout.js";

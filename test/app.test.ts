@@ -5,6 +5,10 @@ import { JSDOM } from "jsdom";
 import { defaultProjectOptions } from "../options.js";
 import type { ProjectOptions } from "../options.js";
 import type { RuntimeState } from "../runtime-contract.js";
+import type {
+  PluginEnvironmentProviderInputsProps,
+  PluginEnvironmentProviderInputsChange,
+} from "@get-bb/plugin-sdk/app";
 import type { settingsContract } from "../settings-contract.js";
 
 test("settings UI saves project and machine overrides, resets them and reports validation errors", async () => {
@@ -44,7 +48,92 @@ test("settings UI saves project and machine overrides, resets them and reports v
       await import("@get-bb/plugin-sdk/testing/app");
     const { fireEvent, waitFor, cleanup, act } =
       await import("@testing-library/react");
+    const React = await import("react");
     const app = await loadPluginApp(() => import("../app.js"));
+    const branchSlot = app.environmentProviderInputs.find(
+      (entry) => entry.environmentProviderId === "rift",
+    );
+    assert.ok(branchSlot);
+    const changes: PluginEnvironmentProviderInputsChange[] = [];
+    const picker = renderSlot<
+      PluginEnvironmentProviderInputsProps,
+      Pick<typeof settingsContract, "projectOptions">
+    >(
+      {
+        ...branchSlot,
+        component: (props) => {
+          const [value, setValue] = React.useState(props.value);
+          return React.createElement(branchSlot.component, {
+            ...props,
+            value,
+            onChange: (change) => {
+              props.onChange(change);
+              if (change.status === "ready") setValue(change.value);
+            },
+          });
+        },
+      },
+      {
+        projectId: "proj_one",
+        target: { kind: "existing-host", hostId: "host_one" },
+        value: null,
+        onChange: (change) => {
+          changes.push(change);
+        },
+      },
+      {
+        rpc: {
+          projectOptions: async () => ({
+            effective: {
+              ...defaultProjectOptions,
+              startingBranch: "origin/develop",
+            },
+            override: null,
+          }),
+        },
+      },
+    );
+    try {
+      await waitFor(() =>
+        assert.deepEqual(changes[0], {
+          status: "ready",
+          value: { branch: { kind: "default" } },
+        }),
+      );
+      await waitFor(() =>
+        assert.equal(
+          picker.getByLabelText("Branch from:").getAttribute("placeholder"),
+          "Branch from: origin/develop",
+        ),
+      );
+      assert.equal(
+        picker.getByTestId("bb-branch-picker").getAttribute("data-host-id"),
+        "host_one",
+      );
+      assert.equal(
+        picker.getByTestId("bb-branch-picker").getAttribute("data-project-id"),
+        "proj_one",
+      );
+      fireEvent.change(picker.getByLabelText("Branch from:"), {
+        target: { value: "feature/local" },
+      });
+      assert.deepEqual(changes.at(-1), {
+        status: "ready",
+        value: { branch: { kind: "named", name: "feature/local" } },
+      });
+      fireEvent.change(picker.getByLabelText("Branch from:"), {
+        target: { value: "" },
+      });
+      assert.deepEqual(changes.at(-1), {
+        status: "ready",
+        value: { branch: { kind: "default" } },
+      });
+    } finally {
+      await act(async () => {
+        picker.lifecycle.unmount();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+      });
+    }
     const section = app.settingsSections[0];
     assert.ok(section);
     let projectOverride: ProjectOptions | null = null;

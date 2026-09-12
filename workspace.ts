@@ -12,8 +12,9 @@ import { runCommand } from "./process.js";
 import { exists, writeJson } from "./filesystem.js";
 import { inspectCheckout, inspectSource } from "./checkout.js";
 import { removeDependencies } from "./dependencies.js";
-import { defaultProjectOptions, projectOptionsSchema } from "./options.js";
+import { defaultProjectOptions, copyOptionsSchema } from "./options.js";
 import { resolveExecutable } from "./executable.js";
+import { resolveStartingPoint } from "./starting-point.js";
 import { withFileLock } from "./file-lock.js";
 
 export type PrepareRuntime = (
@@ -35,7 +36,7 @@ const errorMessage = (error: unknown) =>
 const planSchema = z
   .object({
     input: hostContract.create.input.extend({
-      options: projectOptionsSchema.default(defaultProjectOptions),
+      options: copyOptionsSchema.default(defaultProjectOptions),
     }),
     target: pathSchema,
     source: pathSchema,
@@ -205,39 +206,13 @@ async function createLockedCopy(
     );
     if (initialized.status === "failed") return initialized;
   }
-  const branch = startingBranch.slice("origin/".length);
-  const trackingRef = `refs/remotes/origin/${branch}`;
-  if (fetchBeforeCreate) {
-    const fetch = await runCommand(
-      "git",
-      [
-        "-c",
-        "core.hooksPath=/dev/null",
-        "fetch",
-        "--no-tags",
-        "origin",
-        `+refs/heads/${branch}:${trackingRef}`,
-      ],
-      source,
-      signal,
-    );
-    if (fetch.status === "failed")
-      return failed(
-        `Could not fetch latest ${startingBranch}; no stale environment was created. ${fetch.message}`,
-      );
-  }
-  const head = await runCommand(
-    "git",
-    ["rev-parse", "--verify", `${trackingRef}^{commit}`],
+  const head = await resolveStartingPoint(
     source,
+    startingBranch,
+    fetchBeforeCreate,
     signal,
   );
-  if (head.status === "failed" || !/^[a-f0-9]{40,64}$/.test(head.stdout))
-    return failed(
-      fetchBeforeCreate
-        ? `Could not resolve the freshly fetched ${startingBranch} commit.`
-        : `No cached ${startingBranch} commit is available. Enable fetching or fetch this branch manually first.`,
-    );
+  if (head.status === "failed") return head;
   const plan: Plan = {
     input,
     target,
@@ -283,7 +258,7 @@ async function createLockedCopy(
     force: true,
   });
   for (const args of [
-    ["checkout", "--force", "--no-track", "-b", input.branchName, head.stdout],
+    ["checkout", "--force", "--no-track", "-b", input.branchName, head.commit],
     ["clean", "-fd"],
   ]) {
     const result = await runCommand(
@@ -307,7 +282,7 @@ async function createLockedCopy(
     path: target,
     branch: input.branchName,
     startingBranch,
-    startingCommit: head.stdout,
+    startingCommit: head.commit,
     createdAt: Date.now(),
   };
   await writeJson(receipt, copy);

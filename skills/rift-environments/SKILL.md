@@ -7,7 +7,9 @@ Use BB's standard environment picker and select Rift when starting a thread.
 
 CLI: `bb thread spawn --project <id> --environment-provider rift --prompt "<task>"`.
 Inspect providers with `bb environment providers --json`. Manage and reuse Rift environments through `bb environment` and `--environment <id>`.
-The SDK equivalent is `bb.sdk.threads.spawn({ projectId, prompt, environment: { type: "provider", environmentProviderId: "rift", machine: { type: "existing", hostId }, inputs: null } })`.
+The SDK equivalent is `bb.sdk.threads.spawn({ projectId, prompt, environment: { type: "provider", environmentProviderId: "rift", machine: { type: "existing", hostId }, inputs: { branch: { kind: "default" } } } })`.
+
+The **Branch from** picker beside the Rift environment dropdown overrides the starting branch for one new environment. CLI: add `--environment-inputs '{"branch":{"kind":"named","name":"feature/local-work"}}'`; SDK: pass that object as `inputs`. Empty/default inputs keep the resolved project/plugin starting branch. Local branches use their current commit without fetching. Names prefixed by a configured remote, such as `origin/main` or `upstream/develop`, fetch that remote when enabled and otherwise use its cached tracking ref. The selection becomes the BB diff base; completed retries retain their recorded branch and commit. Requires BB 0.43+ with SDK 0.4.84+.
 
 Defaults: fetch `origin/main` before each new environment and reuse dependencies. `fetchBeforeCreate: false` uses the last-fetched tracking ref without network access; a missing ref stops creation. With fetching enabled, a failed fetch stops creation. `startingBranch` selects an origin remote branch and the BB diff base. Source branch, index and edits stay intact; fetching updates its tracking ref. New copies discard copied tracked edits and non-ignored untracked files. `reuseDependencies: false` additionally removes ignored recognized generated directories in the new copy before BB setup. Tracked files and local configuration outside those directories, including root/package `.env` files, remain. Existing environments and successful retries retain their recorded starting point.
 

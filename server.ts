@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { BbPluginApi } from "@get-bb/plugin-sdk";
 import { hostContract } from "./contract.js";
 
+import { riftInputsSchema, creationOptions } from "./inputs.js";
 import { configureSettings } from "./settings.js";
 
 const timeoutMs = 15 * 60 * 1000;
@@ -22,6 +23,7 @@ export default function plugin(bb: BbPluginApi) {
       "Create an independent copy. Rift installs automatically on first use.",
     icon: "Copy",
     requires: { gitCheckout: true },
+    inputs: riftInputsSchema,
     policy: { pathKeys: "per-attempt", retireGraceMs: null },
     async availability(context) {
       if (context.host === null || context.projectCheckout === null)
@@ -52,12 +54,13 @@ export default function plugin(bb: BbPluginApi) {
             "This Rift environment is unavailable. Restore its retained copy before reusing it, or start a new Rift environment. Automatic rebuilding could lose its independent Git history.",
         };
       try {
-        const { binaryPath, options } = await settings.resolve(
+        const { binaryPath, options: defaults } = await settings.resolve(
           context.project.id,
           context.host.id,
         );
+        const options = creationOptions(defaults, context.inputs);
         context.report.step(
-          `Preparing Rift, ${options.fetchBeforeCreate ? "Fetching" : "Using cached"} ${options.startingBranch} and creating a Rift environment`,
+          `Preparing Rift and creating an environment from ${options.startingBranch}`,
         );
         const result = await host.call(
           "create",

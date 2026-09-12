@@ -1,0 +1,72 @@
+:where(.rift-settings) {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height, 1.25rem);
+  display: grid;
+  gap: 1.5rem;
+}
+:where(.rift-settings) section {
+  display: grid;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--border);
+}
+:where(.rift-settings) fieldset {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+:where(.rift-settings) label {
+  display: grid;
+  gap: 0.5rem;
+}
+:where(.rift-settings) .rift-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+:where(.rift-settings) p {
+  color: var(--muted-foreground);
+}
+:where(.rift-settings) input:not([type="checkbox"]),
+:where(.rift-settings) select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+:where(.rift-settings) button {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+:where(.rift-settings) button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+:where(.rift-settings) .rift-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+:where(.rift-settings) :focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+:where(.rift-settings) [role="alert"] {
+  margin-block: 0.75rem;
+}
+
+:where(.rift-settings) .rift-runtime {
+  border-block-end: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+  padding-block-end: 1rem;
+  margin-block-end: 1rem;
+}
+
+:where(.rift-settings) .rift-runtime-path {
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono, monospace);
+}

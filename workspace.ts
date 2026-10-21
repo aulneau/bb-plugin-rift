@@ -163,7 +163,7 @@ async function createLockedCopy(
   if (targetParent === source || targetParent.startsWith(source + path.sep))
     return failed("Rift copies must be outside their source checkout.");
   if ((await fs.stat(source)).dev !== (await fs.stat(targetParent)).dev)
-    return failed("Source and destination must be on the same APFS volume.");
+    return failed("Source and destination must be on the same copy-on-write filesystem (APFS, XFS or btrfs).");
   const target = path.join(targetParent, `${input.name}-${input.id}`);
   const planFile = path.join(recordsDir, `${input.id}.plan.json`);
   if (await exists(planFile))

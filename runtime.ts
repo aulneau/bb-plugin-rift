@@ -19,6 +19,7 @@ import type {
 } from "./runtime-contract.js";
 
 import { newerVersion } from "./runtime-version.js";
+import { isSupportedPlatform, unsupportedMessage } from "./platform.js";
 
 const day = 24 * 60 * 60 * 1000;
 const stateSchema = z
@@ -121,8 +122,8 @@ export function createRuntimeManager(
     saved: SavedState,
     signal: AbortSignal,
   ): Promise<RuntimeInstallation> {
-    if (!["darwin-arm64", "darwin-x64"].includes(dependencies.platform))
-      return failed("Rift environments currently support macOS/APFS only.");
+    if (!isSupportedPlatform(dependencies.platform))
+      return failed(unsupportedMessage);
     if (override === "" && saved.active !== null) {
       const binaryPath = path.join(root, saved.active.directory, "rift");
       const resolved = await dependencies.discover(binaryPath);

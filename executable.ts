@@ -44,6 +44,6 @@ export async function resolveExecutable(
     message:
       override !== ""
         ? `Rift executable is missing or not executable: ${override}`
-        : "Rift was not found on this Mac. Install rift-snapshot or set its executable path in Rift settings.",
+        : "Rift was not found on this machine. Install rift-snapshot or set its executable path in Rift settings.",
   };
 }

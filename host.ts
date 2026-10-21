@@ -6,6 +6,7 @@ import { createCopy, removeCopy, type PrepareRuntime } from "./workspace.js";
 import { inspectSource } from "./checkout.js";
 import { createInspectionCache } from "./inspection-cache.js";
 import { createRuntimeManager } from "./runtime.js";
+import { standardRegistry } from "./platform.js";
 
 export function makeHostEntry(runtimeFactory = createRuntimeManager) {
   let inspections: ReturnType<typeof createInspectionCache> | null = null;
@@ -62,15 +63,7 @@ export function makeHostEntry(runtimeFactory = createRuntimeManager) {
           input,
           context.experimental_paths.dataDir,
           context.signal,
-          [
-            path.join(
-              os.homedir(),
-              "Library",
-              "Application Support",
-              "rift",
-              "rift.sqlite",
-            ),
-          ],
+          [standardRegistry()],
           prepare(context.experimental_paths.dataDir),
         ),
       inspect: (input, context) =>

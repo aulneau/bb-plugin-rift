@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { resolveExecutable } from "./executable.js";
 import { exists } from "./filesystem.js";
+import { isSupportedPlatform, currentPlatform, unsupportedMessage } from "./platform.js";
 import { runCommand } from "./process.js";
 const failed = (message: string) => ({ status: "failed" as const, message });
 export async function inspectCheckout(
@@ -10,8 +11,7 @@ export async function inspectCheckout(
   signal: AbortSignal,
 ) {
   try {
-    if (process.platform !== "darwin")
-      return failed("Rift environments currently support macOS/APFS only.");
+    if (!isSupportedPlatform(currentPlatform())) return failed(unsupportedMessage);
     const executable = await resolveExecutable(binaryPath);
     if (executable.status === "failed") return executable;
     const capability = await runCommand(
@@ -42,8 +42,7 @@ export async function inspectCheckout(
 
 export async function inspectSource(sourcePath: string, signal: AbortSignal) {
   try {
-    if (process.platform !== "darwin")
-      return failed("Rift environments currently support macOS/APFS only.");
+    if (!isSupportedPlatform(currentPlatform())) return failed(unsupportedMessage);
     const source = await fs.realpath(sourcePath);
     const gitStat = await fs.lstat(path.join(source, ".git"));
     if (!gitStat.isDirectory() || gitStat.isSymbolicLink())

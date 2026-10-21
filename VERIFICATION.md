@@ -67,3 +67,10 @@ Installed on BB Nightly 0.42.2-nightly.34361658762.1, SDK 0.4.50, macOS arm64, n
 - Fixture projects and verification threads were removed. Retained snapshots and host receipts follow the plugin's normal retention policy.
 
 The tests additionally cover failed fetches, invalid ownership, linked-worktree rejection, idempotent retries/removal, cancellation, partial creation retention, and descendant removal refusal.
+
+## Linux x64 / XFS (2026-10-21)
+
+On a Morpho devbox (Ubuntu 26.04, x86_64) with BB 0.46.1 and Rift 0.0.13 (`rift-snapshot` linux-x64 prebuild), checkout and copies on a reflink XFS volume:
+
+- `RIFT_TEST_BINARY=<rift> TMPDIR=<xfs dir> npm test`: 38 pass, 0 skipped.
+- Installed from a local path; a Claude Code thread created with `--environment-provider rift` ran in `.bb-rifts/<repo>-<key>/<thread>` on its own `bb/…` branch, and its commit stayed in the copy (source still at its prior HEAD on `main`).

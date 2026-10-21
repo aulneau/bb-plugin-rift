@@ -1,6 +1,6 @@
 # Rift reference
 
-Select **Rift** in BB's new-thread environment picker. BB creates an independent APFS copy and launches the thread inside it.
+Select **Rift** in BB's new-thread environment picker. BB creates an independent copy-on-write copy and launches the thread inside it.
 
 By default, each new environment fetches `origin/main`, starts its branch at that exact commit, and reuses dependencies. Fetch failures stop creation. The source keeps its branch, index and local edits; fetching updates its remote-tracking ref. The new copy discards copied tracked edits and non-ignored untracked files. BB runs its normal setup script afterward. Existing environments never auto-reset when settings or remote branches change.
 
@@ -9,7 +9,7 @@ bb thread spawn --project <project-id> --environment-provider rift --prompt "You
 bb environment providers --json
 ```
 
-Requires BB with Plugin SDK 0.4.84+, macOS/APFS, an original Git checkout, and an origin remote. Rift installs automatically on the execution machine when you first create an environment. Linked worktrees are unsupported. Existing checkouts in the standard Rift registry are recognized without reinitializing their markers. An explicit executable override takes precedence and remains user-managed.
+Requires BB with Plugin SDK 0.4.84+, macOS/APFS or Linux x64 with XFS or btrfs, an original Git checkout, and an origin remote. Rift installs automatically on the execution machine when you first create an environment. Linked worktrees are unsupported. Existing checkouts in the standard Rift registry are recognized without reinitializing their markers. An explicit executable override takes precedence and remains user-managed.
 
 Copies reside next to the original checkout under `.bb-rifts`. Archiving threads retains copies. Explicit environment removal moves copies into adjacent `.trash`, keeping their Git history and files; automatic garbage collection is disabled. Removal refuses copies with descendants. Missing environments are not automatically rebuilt because that could replace independent history. Retained paths appear in lifecycle logs. See [operating guidance](../skills/rift-environments/SKILL.md).
 
@@ -21,7 +21,7 @@ Install [BB](https://getbb.app), then run:
 bb plugin install https://github.com/aulneau/bb-plugin-rift
 ```
 
-Select **Rift** when creating a thread. BB installs Rift on that machine automatically and keeps it updated. Requires macOS with an APFS volume.
+Select **Rift** when creating a thread. BB installs Rift on that machine automatically and keeps it updated. Requires macOS with an APFS volume, or Linux x64 with XFS or btrfs.
 
 ## Install from a checkout
 

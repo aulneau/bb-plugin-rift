@@ -12,7 +12,7 @@ This plugin brings Rift to [BB](https://getbb.app)'s environment picker and hand
 
 [Git worktrees](https://git-scm.com/docs/git-worktree) give each thread separate working files, but they start from what is tracked in Git. Installed dependencies, build caches, and ignored local configuration need to be prepared separately for each new worktree.
 
-This plugin uses Rift to bring those files into each new environment. On macOS, APFS copy-on-write lets the copies initially share storage, allocating separate storage as files change. Each thread can reuse the setup already on disk and change its own copy independently.
+This plugin uses Rift to bring those files into each new environment. Copy-on-write (APFS on macOS; XFS reflinks or btrfs on Linux) lets the copies initially share storage, allocating separate storage as files change. Each thread can reuse the setup already on disk and change its own copy independently.
 
 Rift also copies the Git repository. Worktrees share local branches and commits; Rift environments can use the same branch name independently. New commits stay in that copy until you explicitly share them, for example by pushing and fetching.
 
@@ -26,7 +26,7 @@ bb plugin install https://github.com/aulneau/bb-plugin-rift
 
 Choose **Rift** in the environment picker when creating a thread. Use **Branch from** beside it to choose a starting branch. The first launch prepares Rift on the machine containing your project, then runs your normal BB setup script.
 
-Requires macOS with APFS, an original Git checkout, and an `origin` remote. Linked Git worktrees are unsupported.
+Requires macOS with APFS or Linux x64 with XFS (reflinks) or btrfs, an original Git checkout, and an `origin` remote. Copies are made beside the checkout, so it must sit on that filesystem. Linked Git worktrees are unsupported.
 
 ## A fresh branch, with your dependencies in place
 

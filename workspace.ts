@@ -115,7 +115,12 @@ export async function createCopy(
           return { status: "created", copy };
         }
         const key = createHash("sha256").update(source).digest("hex");
-        return withFileLock(path.join(dataDir, `${key}.lock`), signal, () =>
+        // The source's own lock, shared with anything else that changes the checkout (a machine's
+        // scheduled refresh of a base): copies wait for it, up to 20 minutes.
+        const base = await withFileLock(
+          path.join(source, ".git", "base.lock"),
+          signal,
+          () => withFileLock(path.join(dataDir, `${key}.lock`), signal, () =>
           createLockedCopy(
             input,
             dataDir,
@@ -124,7 +129,10 @@ export async function createCopy(
             existingDatabases,
             prepareRuntime,
           ),
+          ),
+          20 * 60_000,
         );
+        return base;
       },
     );
   } catch (error) {

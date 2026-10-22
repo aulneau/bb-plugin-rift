@@ -6,8 +6,9 @@ export async function withFileLock<T>(
   file: string,
   signal: AbortSignal,
   operation: () => Promise<T>,
+  timeoutMs = 30_000,
 ): Promise<T | LockFailure> {
-  const deadline = performance.now() + 30_000;
+  const deadline = performance.now() + timeoutMs;
   for (;;) {
     signal.throwIfAborted();
     try {

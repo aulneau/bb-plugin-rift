@@ -16,6 +16,7 @@ import { defaultProjectOptions, copyOptionsSchema } from "./options.js";
 import { resolveExecutable } from "./executable.js";
 import { resolveStartingPoint } from "./starting-point.js";
 import { withFileLock } from "./file-lock.js";
+import { runHostSetup } from "./host-setup.js";
 
 export type PrepareRuntime = (
   binaryPath: string,
@@ -275,6 +276,9 @@ async function createLockedCopy(
     if (cleaned.status === "failed")
       return failed(`${cleaned.message}\nCopy retained at ${target}.`);
   }
+  const setup = await runHostSetup(source, target, signal);
+  if (setup.status === "failed")
+    return failed(`${setup.message}\nCopy retained at ${target}.`);
   const copy: RiftCopy = {
     id: input.id,
     name: input.name,
